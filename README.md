@@ -54,6 +54,7 @@ npm install
 
 npm start
 
+
 Frontend runs on port 3000. Backend runs on port 8000.
 
 ## Project Structure
