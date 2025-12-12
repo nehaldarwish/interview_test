@@ -1,4 +1,5 @@
 // server/src/app.ts
+import 'dotenv/config';
 import { join } from 'node:path'
 import AutoLoad from '@fastify/autoload'
 import { FastifyPluginAsync } from 'fastify'

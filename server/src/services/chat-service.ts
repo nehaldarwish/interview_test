@@ -1,5 +1,5 @@
 import { getLLMProvider } from './llm-provider';
-import type { Chat} from './types';
+import type { Chat, Message, MessageContent } from './types';
 
 const chats: Map<string, Chat> = new Map();
 
@@ -27,12 +27,15 @@ export class ChatService {
     );
   }
 
-  async sendMessage(chatId: string, userMessage: string, model = 'gpt-4o-mini'): Promise<string> {
+  async sendMessage(chatId: string, userMessage: string, model = 'gpt-4o-mini'): Promise<MessageContent> {
     const chat = chats.get(chatId);
     if (!chat) throw new Error('Chat not found');
 
-    chat.messages.push({ role: 'user', content: userMessage });
+    // Add user message
+    const userMsg: Message = { role: 'user', content: userMessage };
+    chat.messages.push(userMsg);
 
+    // Update chat name from first message
     if (chat.messages.length === 1) {
       const words = userMessage.trim().split(' ').slice(0, 6).join(' ');
       chat.name = words || 'New Chat';
@@ -42,9 +45,12 @@ export class ChatService {
     const provider = getLLMProvider(model);
 
     try {
-      const assistantMessage = await provider.generateResponse(chat.messages);
+      const assistantMessage: MessageContent = await provider.generateResponse(chat.messages);
 
-      chat.messages.push({ role: 'assistant', content: assistantMessage });
+      // Add assistant message
+      const assistantMsg: Message = { role: 'assistant', content: assistantMessage };
+      chat.messages.push(assistantMsg);
+      
       chat.updatedAt = new Date();
       chats.set(chatId, chat);
 

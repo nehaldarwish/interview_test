@@ -2,9 +2,28 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../client";
 import { toast } from "sonner";
 
+export interface Deliverable {
+  title: string;
+  description: string;
+}
+
+export interface Workstream {
+  id: string;
+  title: string;
+  description: string;
+  deliverables: Deliverable[];
+}
+
+export interface ProjectPlan {
+  title?: string;
+  workstreams: Workstream[];
+}
+
+export type MessageContent = string | { text?: string; projectPlan?: ProjectPlan };
+
 export interface Message {
   role: "user" | "assistant";
-  content: string;
+  content: MessageContent;
 }
 
 export interface Chat {
@@ -32,7 +51,7 @@ export function useChatsQuery() {
       return response.data;
     },
     retry: 1,
-    staleTime: 1000 * 30, // Consider data fresh for 30 seconds
+    staleTime: 1000 * 30,
   });
 }
 
@@ -82,16 +101,35 @@ export function useSendMessageMutation() {
     }) => {
       const response = await apiClient.post(`/chats/${chatId}/messages`, {
         content,
-        model: model || "gpt-4o-mini", // fallback
+        model: model || "gpt-4o-mini",
       });
-      return response.data as { message: string; chat: Chat };
+      return response.data as { message: MessageContent; chat: Chat };
+    },
+    onMutate: async ({ chatId, content }) => {
+      await queryClient.cancelQueries({ queryKey: ["chats", chatId] });
+      const previousChat = queryClient.getQueryData<Chat>(["chats", chatId]);
+
+      if (previousChat) {
+        queryClient.setQueryData<Chat>(["chats", chatId], {
+          ...previousChat,
+          messages: [
+            ...previousChat.messages,
+            { role: "user", content }
+          ],
+          updatedAt: new Date().toISOString(),
+        });
+      }
+
+      return { previousChat };
     },
     onSuccess: (data, variables) => {
-      // Update the chat query with the new data
       queryClient.setQueryData(["chats", variables.chatId], data.chat);
       queryClient.invalidateQueries({ queryKey: ["chats"] });
     },
-    onError: (error: any) => {
+    onError: (error: any, variables, context) => {
+      if (context?.previousChat) {
+        queryClient.setQueryData(["chats", variables.chatId], context.previousChat);
+      }
       const message = error?.response?.data?.message || "Failed to send message";
       toast.error("Error", { description: message });
     },

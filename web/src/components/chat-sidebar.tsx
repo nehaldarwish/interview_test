@@ -12,7 +12,7 @@ interface Props {
   chats: ChatReference[];
   onSelectChat?: (chatId: string) => void;
   selectedChatId: string | null;
-  onDeleteChat?: (chatId: string) => void;  // ← NEW
+  onDeleteChat?: (chatId: string) => void;
 }
 
 export function ChatSidebar(props: Props) {
@@ -52,23 +52,23 @@ export function ChatSidebar(props: Props) {
               return (
                 <div
                   key={chat.id}
-                  className="group flex items-center gap-2 rounded-lg hover:bg-accent/50 transition-colors"
+                  className="group relative rounded-lg hover:bg-accent/50 transition-colors"
                 >
                   <Button
                     variant={isSelected ? "secondary" : "ghost"}
                     size="sm"
-                    className="flex-1 justify-start text-left font-normal truncate"
+                    className="w-full justify-start text-left font-normal truncate pr-10"
                     onClick={() => onSelectChat?.(chat.id)}
                   >
                     <MessagesSquareIcon className="w-4 h-4 mr-2 shrink-0" />
                     <span className="truncate">{displayName}</span>
                   </Button>
 
-                  {/* Delete Button – only shows on hover */}
+                  {/* Delete Button – positioned absolutely inside */}
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10"
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteChat?.(chat.id);
