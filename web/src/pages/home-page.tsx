@@ -1,8 +1,7 @@
-// web/src/pages/home-page.tsx
 import React, { useEffect } from "react";
 import { ChatSidebar } from "../components/chat-sidebar";
 import { ChatInputBox } from "../components/chat-input-box";
-import { MessageContainer, AssistantLoadingIndicator } from "../components/message";
+import { MessageContainer, AssistantLoadingIndicator, MessageBubble } from "../components/message";
 import {
   useChatsQuery,
   useChatQuery,
@@ -23,9 +22,21 @@ import {
   SelectValue,
 } from "../components/ui/select";
 
+// Local storage keys
+const STORAGE_KEYS = {
+  SELECTED_CHAT: "tekkr_selected_chat",
+  SELECTED_MODEL: "tekkr_selected_model",
+};
+
 export function HomePage() {
-  const [selectedChatId, setSelectedChatId] = React.useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = React.useState<string>("gpt-4o-mini");
+  const [selectedChatId, setSelectedChatId] = React.useState<string | null>(() => {
+    // Load from localStorage on mount
+    return localStorage.getItem(STORAGE_KEYS.SELECTED_CHAT);
+  });
+  
+  const [selectedModel, setSelectedModel] = React.useState<string>(() => {
+    return localStorage.getItem(STORAGE_KEYS.SELECTED_MODEL) || "gpt-4o-mini";
+  });
 
   const chatsQuery = useChatsQuery();
   const chatQuery = useChatQuery(selectedChatId);
@@ -33,7 +44,21 @@ export function HomePage() {
   const sendMessageMutation = useSendMessageMutation();
   const deleteChatMutation = useDeleteChatMutation();
   
-  // Auto-select the first chat if none selectedChatId is null and there are chats
+  // Persist selected chat to localStorage
+  useEffect(() => {
+    if (selectedChatId) {
+      localStorage.setItem(STORAGE_KEYS.SELECTED_CHAT, selectedChatId);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.SELECTED_CHAT);
+    }
+  }, [selectedChatId]);
+
+  // Persist selected model to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.SELECTED_MODEL, selectedModel);
+  }, [selectedModel]);
+  
+  // Auto-select the first chat if none selected and there are chats
   useEffect(() => {
     if (!selectedChatId && chatsQuery.data?.chats.length) {
       const firstChat = chatsQuery.data.chats[0];
@@ -41,11 +66,10 @@ export function HomePage() {
     }
   }, [chatsQuery.data, selectedChatId]);
 
-  // When user clicks "New Chat" → create + instantly go into it
   const handleCreateChat = async () => {
     try {
       const newChat = await createChatMutation.mutateAsync();
-      setSelectedChatId(newChat.id); // ← instantly switch to it
+      setSelectedChatId(newChat.id);
     } catch (err) {
       toast.error("Failed to create chat");
     }
@@ -69,7 +93,6 @@ export function HomePage() {
   
     await deleteChatMutation.mutateAsync(chatId);
   
-    // If we just deleted the currently open chat → go to the first remaining one
     if (selectedChatId === chatId) {
       const remaining = chats.filter(c => c.id !== chatId);
       setSelectedChatId(remaining.length > 0 ? remaining[0].id : null);
@@ -80,7 +103,6 @@ export function HomePage() {
 
   const chats = chatsQuery.data?.chats || [];
 
-  // Loading state
   if (chatsQuery.isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -89,7 +111,6 @@ export function HomePage() {
     );
   }
 
-  // If there are NO chats at all → show welcome screen with big "New Chat" button
   if (chats.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-10 px-8">
@@ -106,7 +127,6 @@ export function HomePage() {
     );
   }
 
-  // Normal chat view (we always have at least one chat now)
   return (
     <div className="flex h-screen bg-background text-foreground">
       <div className="w-64 flex-shrink-0">
@@ -120,7 +140,8 @@ export function HomePage() {
       </div>
 
       <div className="flex flex-1 flex-col">
-        <div className="flex-1 overflow-y-auto py-8 min-h-0">          {chatQuery.isError ? (
+        <div className="flex-1 overflow-y-auto py-8 min-h-0">
+          {chatQuery.isError ? (
             <Alert variant="destructive" className="max-w-md mx-auto mt-20">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
@@ -139,17 +160,7 @@ export function HomePage() {
             <div className="max-w-4xl mx-auto space-y-6">
               {chatQuery.data.messages.map((msg, i) => (
                 <MessageContainer key={i} role={msg.role}>
-                  <div
-                    className={`
-                      max-w-2xl rounded-2xl px-6 py-4 text-sm shadow-sm
-                      ${msg.role === "user"
-                        ? "bg-primary text-primary-foreground ml-auto"
-                        : "bg-muted"
-                      }
-                    `}
-                  >
-                    {msg.content}
-                  </div>
+                  <MessageBubble message={msg} />
                 </MessageContainer>
               ))}
               {sendMessageMutation.isPending && <AssistantLoadingIndicator />}
@@ -157,7 +168,6 @@ export function HomePage() {
           )}
         </div>
 
-        {/* Model selector + input */}
         <div className="border-t border-border bg-background px-6 py-4">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center gap-4 mb-3">

@@ -88,7 +88,7 @@ const chats: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
       const chat = await chatService.getChat(chatId);
       
       reply.send({
-        message: assistantMessage,
+        message: assistantMessage,  // Can be string or structured content
         chat: chat ? {
           id: chat.id,
           name: chat.name,

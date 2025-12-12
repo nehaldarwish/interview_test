@@ -1,9 +1,16 @@
 import React from "react";
-import {cn} from "../lib/utils";
+import { cn } from "../lib/utils";
 import Spinner from "./ui/spinner";
-import {BotIcon, UserIcon} from "lucide-react";
+import { BotIcon, UserIcon } from "lucide-react";
+import { MessageContentRenderer } from "./message-content-renderer";
+import { ProjectPlan } from "./project-plan-preview";
 
-export type Message = { role: "user" | "assistant"; content: string };
+export type MessageContent = string | { text?: string; projectPlan?: ProjectPlan };
+
+export type Message = { 
+  role: "user" | "assistant"; 
+  content: MessageContent;
+};
 
 export function MessageContainer({ role, children }: React.PropsWithChildren<{ role: Message["role"] }>) {
     return (
@@ -22,6 +29,23 @@ export function MessageContainer({ role, children }: React.PropsWithChildren<{ r
             </div>
         </div>
     );
+}
+
+export function MessageBubble({ message }: { message: Message }) {
+  const isUser = message.role === "user";
+  
+  return (
+    <div
+      className={cn(
+        "rounded-2xl px-6 py-4 text-sm shadow-sm",
+        isUser
+          ? "bg-primary text-primary-foreground ml-auto max-w-2xl"
+          : "bg-muted max-w-full"
+      )}
+    >
+      <MessageContentRenderer content={message.content} />
+    </div>
+  );
 }
 
 export function AssistantLoadingIndicator() {
