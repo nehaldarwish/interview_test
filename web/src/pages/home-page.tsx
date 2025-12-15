@@ -89,7 +89,7 @@ export function HomePage() {
   };
 
   const handleDeleteChat = async (chatId: string) => {
-    if (!confirm("Delete this chat? This cannot be undone.")) return;
+    // if (!confirm("Delete this chat? This cannot be undone.")) return;
   
     await deleteChatMutation.mutateAsync(chatId);
   
