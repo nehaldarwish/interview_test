@@ -42,33 +42,29 @@ Backend storage is in-memory, as required.
 ### Environment Configuration
 Before running the project, create a .env file in the server directory with the following configuration:
 
-  **API Keys**
+    # API Keys
+     
     OPENAI_API_KEY=
-
     ANTHROPIC_API_KEY=
-
     GEMINI_API_KEY=
 
-  **Server Configuration**
+    # Server Configuration
     PORT=8000
 
-  **CORS Configuration**
+    # CORS Configuration
     CORS_ORIGIN=http://localhost:5173
 
 ### Backend
 
-cd server
-
-npm install
-
-npm start
+    cd server
+    npm install
+    npm start
 
 ### Frontend
-cd web
 
-npm install
-
-npm start
+    cd web
+    npm install
+    npm start
 
 
 Frontend runs on port 3000. Backend runs on port 8000.
