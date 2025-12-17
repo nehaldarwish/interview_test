@@ -44,7 +44,9 @@ Before running the project, create a .env file in the server directory with the 
 
 #### API Keys
 OPENAI_API_KEY=
+
 ANTHROPIC_API_KEY=
+
 GEMINI_API_KEY=
 
 #### Server Configuration
