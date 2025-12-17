@@ -42,15 +42,15 @@ Backend storage is in-memory, as required.
 ### Environment Configuration
 Before running the project, create a .env file in the server directory with the following configuration:
 
-# API Keys
+#### API Keys
 OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
 GEMINI_API_KEY=
 
-# Server Configuration
+#### Server Configuration
 PORT=8000
 
-# CORS Configuration
+#### CORS Configuration
 CORS_ORIGIN=http://localhost:5173
 
 ### Backend
